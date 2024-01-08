@@ -1,4 +1,4 @@
-# Serverless deployment
+# Amazon Web Services (AWS) deployment
 This folder contains two deployment methods, via `serverless framework` and via the `AWS SAM CLI`
 Using `serverless framework` is easier and more feature-rich, but for the sake of learning the bare-bones `AWS SAM` is used as well.
 
