@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: CloudFormation template for URL Shortener
+Resources:
+  UrlShortenerDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: urls-cf-2
+      AttributeDefinitions:
+      - AttributeName: code
+        AttributeType: S
+      KeySchema:
+      - AttributeName: code
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  ExpandLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: url-shortener-cf-expand-2
+      Handler: expand.handler
+      Role:
+        Fn::GetAtt:
+        - UrlShortenerDbRwRole
+        - Arn
+      Runtime: nodejs18.x
+      CodeUri: s3://7p-url-shortener-cf/8ba14b0d3f3146cf6a88fb6fcb380934
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /expand
+            Method: GET
+            ApiId:
+              Ref: ApiGatewayHttp
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: UrlShortenerDynamoDBTable
+  ShrinkLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: url-shortener-cf-shrink-2
+      Handler: shrink.handler
+      Role:
+        Fn::GetAtt:
+        - UrlShortenerDbRwRole
+        - Arn
+      Runtime: nodejs18.x
+      CodeUri: s3://7p-url-shortener-cf/8ba14b0d3f3146cf6a88fb6fcb380934
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /shrink
+            Method: POST
+            ApiId:
+              Ref: ApiGatewayHttp
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: UrlShortenerDynamoDBTable
+  ApiGatewayHttp:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: url-shortener-gw-cf-1
+      StageName: dev
+  UrlShortenerDbRwRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: url-shortener-db-putget-2
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: url-shortener-db-putget-policy-2
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            Resource:
+              Fn::GetAtt:
+              - UrlShortenerDynamoDBTable
+              - Arn
+      - PolicyName: url-shortener-AppendToLogsPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: '*'

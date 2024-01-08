@@ -1,0 +1,52 @@
+org: yoadw
+app: getting-started-7
+service: url-shortener
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+          Resource:
+            - "Fn::GetAtt": [urlsTableResource, Arn]
+
+  environment:
+    TABLE_NAME:
+      Ref: urlsTableResource
+
+functions:
+  shrink:
+    handler: src/shrink.handler
+    events:
+      - httpApi:
+          path: /shrink
+          method: post 
+  expand:
+    handler: src/expand.handler
+    events:
+      - httpApi:
+          path: /expand
+          method: get
+resources:
+  Resources:
+    urlsTableResource:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: urls
+        AttributeDefinitions:
+          - AttributeName: code
+            AttributeType: S
+        KeySchema:
+          - AttributeName: code
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+       
