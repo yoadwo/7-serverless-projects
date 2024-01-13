@@ -1,0 +1,25 @@
+<!-- get-alarms.component.html -->
+<div>
+  <h2>Get Alarms</h2>
+  <div id="searchForm">
+    <label for="searchInput">Search:</label>
+    <input type="text" id="searchInput" [(ngModel)]="searchQuery" />
+    <button (click)="clearSearch()">Clear</button>
+    <button (click)="search()">Search</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Message</th>
+        <th>ExipreOn</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let alarm of alarmFiltered">
+        <td>{{ alarm.Message }}</td>
+        <td>{{ alarm.ExpireOn }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
