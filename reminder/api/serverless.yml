@@ -1,0 +1,128 @@
+org: yoadw
+app: getting-started-7
+service: reminder
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  httpApi:
+    cors: true
+  environment:
+    TABLE_NAME:
+      Ref: RemindersDynamoDBTable
+
+functions:
+  set-slsfw:
+    handler: reminderSet.handler
+    events:
+      - httpApi:
+          path: /reminder
+          method: post
+    role: ReminderDynamoDbSet
+  get-slsfw:
+    handler: reminderGet.handler
+    events:
+      - httpApi:
+          path: /reminder
+          method: get
+    role: ReminderDynamoDbGet
+resources:
+  Resources:
+    RemindersDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: reminders-slsfw
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+          - AttributeName: ReminderId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
+          - AttributeName: ReminderId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
+        TimeToLiveSpecification:
+          Enabled: true
+          AttributeName: TTL
+    ReminderDynamoDbSet:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: reminder-dynamodb-set
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: DynamoDBWriteAccess
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                    - logs:FilterLogEvents
+                  Resource: 
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/reminder-set-slsfw*:*:*'
+                - Effect: Allow
+                  Action:
+                    - dynamodb:PutItem
+                  Resource:
+                    'Fn::GetAtt': [ RemindersDynamoDBTable, Arn ]
+    ReminderDynamoDbGet:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: reminder-dynamodb-get
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: DynamoDBReadAccess
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                    - logs:FilterLogEvents
+                  Resource: 
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/reminder-get-slsfw*:*:*'
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Attributes
+                    - dynamodb:LeadingKeys
+                    - dynamodb:ReturnValues
+                    - dynamodb:Select
+                    - dynamodb:Query
+                  Resource:
+                    'Fn::GetAtt': [ RemindersDynamoDBTable, Arn ]
+

@@ -4,3 +4,4 @@ Hopefully each project will have both _serverless framework_ and _AWS SAM_ deplo
 
 ## Current Status
 1. URL Shortener - _serverless framework_ and _AWS SAM_.
+2. Reminder - _serverless framework_; _Angular_ client.
