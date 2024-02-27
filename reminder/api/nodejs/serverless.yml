@@ -27,6 +27,14 @@ functions:
           path: /reminder
           method: get
     role: ReminderDynamoDbGet
+  alarm-slsfw:
+    handler: reminderAlarm.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [RemindersDynamoDBTable, StreamArn]
+    role: ReminderDynamoDbAlarm
 resources:
   Resources:
     RemindersDynamoDBTable:
@@ -49,6 +57,8 @@ resources:
         TimeToLiveSpecification:
           Enabled: true
           AttributeName: TTL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
     ReminderDynamoDbSet:
       Type: AWS::IAM::Role
       Properties:
@@ -123,6 +133,45 @@ resources:
                     - dynamodb:ReturnValues
                     - dynamodb:Select
                     - dynamodb:Query
+                  Resource:
+                    'Fn::GetAtt': [ RemindersDynamoDBTable, Arn ]
+    ReminderDynamoDbAlarm:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: reminder-dynamodb-alarm
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: DynamoDBAlarm
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                    - logs:FilterLogEvents
+                  Resource: 
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/reminder-get-slsfw*:*:*'
+                - Effect: Allow
+                  Action:
+                    - dynamodb:DescribeStream
+                    - dynamodb:GetRecords
+                    - dynamodb:GetShardIterator
+                    - dynamodb:ListStreams
                   Resource:
                     'Fn::GetAtt': [ RemindersDynamoDBTable, Arn ]
 

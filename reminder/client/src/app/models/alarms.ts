@@ -1,7 +1,7 @@
 export interface AlarmGet {
   userId: string;
-  Message: string;
-  ExpireOn: Date;
+  message: string;
+  expireOn: Date;
 }
 
 export interface Alarms {

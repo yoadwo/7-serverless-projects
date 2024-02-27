@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
-import { AlarmGet } from '../alarms';
+import { AlarmGet } from '../models/alarms';
 import { ReminderHttpService } from '../reminder-http/reminder-http.service';
 
 
