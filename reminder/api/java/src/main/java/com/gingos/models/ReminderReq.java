@@ -7,13 +7,13 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 @DynamoDbBean
 public class ReminderReq {
 
-    public static final String ENV_VARIABLE_PROJECTTYPE = "PROJECT_TYPE";
+    public static final String PROJECTTYPE = "PROJECTTYPE";
 
     @JsonProperty("userId")
     private String userId;
 
     @JsonProperty("projectType")
-    private String projectType = System.getenv(ENV_VARIABLE_PROJECTTYPE);;
+    private String projectType = System.getenv(PROJECTTYPE);
 
     private String message;
 
