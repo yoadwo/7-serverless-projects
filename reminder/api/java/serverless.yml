@@ -40,6 +40,11 @@ provider:
         - dynamodb:BatchGetItem
       Resource:
         - "Fn::GetAtt": [ RemindersDynamoDBTable, Arn ]
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+        - ses:SendRawEmail
+      Resource: "*"
 
 # you can overwrite defaults here
 #  stage: dev
@@ -89,6 +94,14 @@ functions:
             parameters:
               paths:
                 userId: true
+  sendReminderNotification:
+    handler: com.gingos.functions.SendReminderNotificationHandler
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [ RemindersDynamoDBTable, StreamArn ]
+
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -150,7 +163,7 @@ resources:
           Enabled: true
           AttributeName: TTL
         StreamSpecification:
-          StreamViewType: NEW_AND_OLD_IMAGES
+          StreamViewType: OLD_IMAGE
 #  Outputs:
 #     NewOutput:
 #       Description: "Description for the output"
