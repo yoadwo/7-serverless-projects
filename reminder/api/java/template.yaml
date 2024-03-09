@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: CloudFormation template for Reminder
+Globals:
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowOrigin: "'*'"
+  Function:
+    Environment:            
+      Variables:
+        PROJECTTYPE: 'cf'
+Resources:
+  RemindersDynamoDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: reminder-cf-1
+      AttributeDefinitions:
+        - AttributeName: UserId
+          AttributeType: S
+        - AttributeName: ReminderId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: UserId
+          KeyType: HASH
+        - AttributeName: ReminderId
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TimeToLiveSpecification:
+          Enabled: true
+          AttributeName: TTL
+      StreamSpecification:
+        StreamViewType: OLD_IMAGE
+  PutItemLambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: reminder-cf-putitem-1
+      Handler: com.gingos.functions.PutItemHandler
+      Role: !GetAtt ReminderRole.Arn
+      Runtime: java17
+      CodeUri: target/reminder-latest-shaded.jar
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /reminders/{userId}
+            Method: POST
+            # RequestParameters:
+            #   - method.request.path.userId: true
+            ApiId:
+              Ref: ApiGatewayHttp                    
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: RemindersDynamoDBTable          
+  GetItemsLambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: reminder-cf-getitems-1
+      Handler: com.gingos.functions.GetItemsHandler
+      Role: !GetAtt ReminderRole.Arn
+      Runtime: java17
+      CodeUri: target/reminder-latest-shaded.jar
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /reminders/{userId}
+            Method: GET
+            # RequestParameters:
+            #   - method.request.path.userId: true
+            ApiId:
+              Ref: ApiGatewayHttp
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: RemindersDynamoDBTable
+  sendReminderNotification:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: reminder-cf-sendnotifs-1
+      Handler: com.gingos.functions.SendReminderNotificationHandler
+      Role: !GetAtt ReminderRole.Arn
+      Runtime: java17
+      CodeUri: target/reminder-latest-shaded.jar
+      Events:
+        Stream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt RemindersDynamoDBTable.StreamArn
+            StartingPosition: LATEST
+  ApiGatewayHttp:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: reminder-gw-cf-1
+      StageName: dev
+  ReminderRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: reminder-cf-role-1
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: reminder-policy-db-rw-1
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:Query'
+                  - 'dynamodb:PutItem'                  
+                Resource: !GetAtt RemindersDynamoDBTable.Arn
+        - PolicyName: reminder-policy-logs-1
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              Resource: '*'
+        - PolicyName: reminder-policy-emails-1
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - ses:SendEmail
+              - ses:SendRawEmail
+              Resource: '*'
+        - PolicyName: reminder-policy-streams-1
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - 'dynamodb:GetRecords'
+              - 'dynamodb:GetShardIterator'
+              - 'dynamodb:DescribeStream'
+              - 'dynamodb:ListStreams'  # Might be useful for debugging
+              Resource: '*'
