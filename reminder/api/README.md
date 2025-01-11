@@ -1,5 +1,5 @@
 # Amazon Web Services (AWS) deployment
-his folder contains two deployment methods, via `serverless framework` and via the `AWS SAM CLI`.
+This folder contains two deployment methods, via `serverless framework` and via the `AWS SAM CLI`.
 Using `serverless framework` is easier and more feature-rich, but for the sake of learning the bare-bones `AWS SAM` is used as well.
 A simple Angular client is also provided, for easier invokation of the functions.
 
@@ -45,7 +45,7 @@ _Note_: In current form, after deployment, your API is public and can be invoked
 2. Package to validate syntax and generate a proper cloud-formation yaml `aws cloudformation package --region <region> --s3-bucket <chosen-bucket-name> --template-file template.yaml --output-template-file generated-template.yaml`
 3. Publish the generated yaml: `aws cloudformation deploy --region <region> --template-file "<full-path>/gen/generated-template.yaml" --stack-name reminder-cf --capabilities CAPABILITY_NAMED_IAM`
 
-## Invocation
+### Invocation
 
 After successful deployment, you can call the created application via HTTP:
 

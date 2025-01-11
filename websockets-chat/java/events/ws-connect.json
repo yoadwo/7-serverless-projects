@@ -1,0 +1,22 @@
+{
+  "requestContext": {
+    "routeKey": "connectToRoom",
+    "messageId": "EOKgeefPIAMCEyw=",
+    "eventType": "MESSAGE",
+    "extendedRequestId": "EOKgeHkQIAMFd7A=",
+    "requestTime": "11/Jan/2025:11:35:56 +0000",
+    "messageDirection": "IN",
+    "stage": "Prod",
+    "connectedAt": 1736595147884,
+    "requestTimeEpoch": 1736595356288,
+    "identity": {
+      "sourceIp": "5.28.180.59"
+    },
+    "requestId": "EOKgeHkQIAMFd7A=",
+    "domainName": "1xzhtkts70.execute-api.us-east-1.amazonaws.com",
+    "connectionId": "EOJ_6dsrIAMCEyw=",
+    "apiId": "1xzhtkts70"
+  },
+  "body": "{\"action\":\"connectToRoom\",\"roomId\":\"room2\"}",
+  "isBase64Encoded": false
+}

@@ -6,3 +6,4 @@ The ideas were all taken from the article [How to Learn Serverless AWS by Buildi
 ## Current Status
 1. URL Shortener - _serverless framework_ and _AWS SAM_.
 2. Reminder - _serverless framework_; _Angular_ client.
+3. Chatrooms - _AWS SAM_; _Vanilla JS_ client.
