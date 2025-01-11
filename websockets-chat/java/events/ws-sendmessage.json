@@ -1,0 +1,22 @@
+{
+  "requestContext": {
+    "routeKey": "sendMessage",
+    "messageId": "ELDK4eGXoAMCKWQ=",
+    "eventType": "MESSAGE",
+    "extendedRequestId": "ELDK4H91IAMFrZw=",
+    "requestTime": "10/Jan/2025:12:55:07 +0000",
+    "messageDirection": "IN",
+    "stage": "Prod",
+    "connectedAt": 1736513590593,
+    "requestTimeEpoch": 1736513707610,
+    "identity": {
+      "sourceIp": "5.28.181.159"
+    },
+    "requestId": "ELDK4H91IAMFrZw=",
+    "domainName": "1xzhtkts70.execute-api.us-east-1.amazonaws.com",
+    "connectionId": "ELC4ldNzoAMCKWQ=",
+    "apiId": "1xzhtkts70"
+  },
+  "body": "{\"action\":\"sendMessage\", \"message\":\"message\", \"roomId\":\"room2\"}",
+  "isBase64Encoded": false
+}

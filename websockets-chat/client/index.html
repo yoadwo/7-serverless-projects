@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        input {
+            margin: 5px 0;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebSocket Demo</h1>
+    <div>
+        <label for="roomId">Room ID:</label>
+        <input type="text" id="roomId" placeholder="Enter room ID">
+    </div>
+    <div>
+        <label for="message">Message:</label>
+        <input type="text" id="message" placeholder="Enter message">
+    </div>
+    <div id="command">
+        <label for="mode">Mode:</label>
+        <input type="radio" id="connectMode" name="mode" value="connectToRoom"> Connect
+        <input type="radio" id="sendMode" name="mode" value="sendMessage"> Send
+    </div>
+    <button id="sendButton">Send Command</button>
+
+    <h2>Messages</h2>
+    <div id="message-history-container"></div>
+
+    <script>
+        const messageHistoryContainer = document.getElementById('message-history-container');
+        const roomIdInput = document.getElementById('roomId');
+        const messageInput = document.getElementById('message');
+        const connectMode = document.getElementById('connectMode');
+        const sendMode = document.getElementById('sendMode');
+        const sendButton = document.getElementById('sendButton')
+        let socket = null;
+
+        fetch('websockets-server.txt')
+            .then(response => {
+                if (!response.ok) {
+                    sendButton.disabled = true;
+                    alert(`Failed to load WebSocket URI file: ${response.statusText}`);
+                    return;
+                }
+                return response.text();
+            })
+            .then(url => {
+                serverUrl = url.trim(); // Trim to remove any whitespace or newline characters
+                if (!serverUrl) {
+                    alert('websockets URL is empty. check local file or URL correctness');
+                    sendButton.disabled = true;
+                    return;
+                }
+                initializeWebSocket(serverUrl);
+            })
+            .catch(error => {
+                console.error('Error loading WebSocket URI:', error);
+            });
+
+        // Send a message when the button is clicked
+        document.getElementById('sendButton').addEventListener('click', () => {
+
+            let payload = {};
+            payload.action = document.getElementById('command').querySelector('input[name="mode"]:checked').value;
+
+            if (!roomIdInput.value) {
+                alert('Please enter roomId.');
+                return;
+            }
+            payload.roomId = roomIdInput.value;
+
+            if (sendMode.checked) {
+                if (!message.value) {
+                    alert('Please enter message.');
+                    return;
+                }
+                payload.message = message.value;
+            }
+
+            socket.send(JSON.stringify(payload));
+            logMessage(`> ${JSON.stringify(payload)}`);
+        });
+
+        // Helper function to log messages to the page
+        function logMessage(msg) {
+            const log = document.createElement('div');
+            log.textContent = msg;
+            messageHistoryContainer.appendChild(log);
+        }
+
+        function initializeWebSocket(serverUrl) {
+            // Open a WebSocket connection
+            socket = new WebSocket(serverUrl);
+
+            // Connection opened
+            socket.addEventListener('open', (event) => {
+                logMessage('Connection opened.');
+            });
+
+            // Connection closed
+            socket.addEventListener('close', () => {
+                logMessage('Connection closed.');
+            });
+
+            // Handle incoming messages
+            socket.addEventListener('message', (event) => {
+                logMessage(`< ${event.data}`);
+            });
+
+            // Handle errors
+            socket.addEventListener('error', (error) => {
+                logMessage(`Error: ${error.message}`);
+            });
+        }
+    </script>
+</body>
+
+</html>
