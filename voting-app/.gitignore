@@ -13,3 +13,4 @@ target
 
 # Serverless directories
 samconfig.toml
+/.aws-sam/
